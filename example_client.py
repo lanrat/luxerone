@@ -32,7 +32,7 @@ pending = luxerone.pending(token)
 print("pending (%d):" % len(pending))
 luxerone.print_packages(pending)
 
-# print last 10 packages
+# print last 30 packages
 history = luxerone.history(token)
 print("history:")
 luxerone.print_packages(history, 30)

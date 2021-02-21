@@ -94,6 +94,7 @@ def user_info(token):
 def history(token):
     """ returns a history of all packages received
     includes pending packages
+    seems to be limited to last 50
     """
     url = API_BASE + "/deliveries/history"
     resp = api_request(url, token=token)
