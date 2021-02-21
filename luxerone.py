@@ -11,7 +11,7 @@ default_headers = {
 }
 
 def gen_uuid():
-    """ returns a 64 but uuid as a hex string for new clients """
+    """ returns a 64 bit uuid as a hex string for new clients """
     id = uuid.uuid4().int & (1<<64)-1
     return hex(id)[2:]
 
@@ -22,7 +22,7 @@ def api_request(url, method="GET", token=None, data=None):
     token:  the API token to add to the authorization header
     data:   the message body for POST request that will be URL encoded
 
-    returns the "data" field of the response or None on error
+    returns the returned json parsed as a dict
     """
     if data:
         data = urllib.parse.urlencode(data).encode()
@@ -104,6 +104,7 @@ def history(token):
 
     return resp["data"]
 
+
 def logout(token):
     """ logout from the LuxerOne API
     this function call appears to have no affect, likely broken server side
@@ -118,6 +119,7 @@ def logout(token):
         raise Exception("logout error: %s" % resp["error"])
 
     return resp["data"]
+
 
 def set_setting(token, key, value):
     """ changes user settings.
@@ -138,13 +140,13 @@ def set_setting(token, key, value):
     if "error" in resp:
         raise Exception("set_setting error: %s" % resp["error"])
 
-
     return resp["data"]
 
 
 def print_package(data):
     """ print some package information """
     print("%s\t%s\t%s\t%s\t%s" % (data['id'], data['delivered'][:-6],data['carrier'],data['lockerNumber'],data['accessCode']))
+
 
 def print_packages(data, limit=0):
     """ print a list of packages """
