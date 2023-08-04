@@ -1,24 +1,28 @@
-# Luxer One API
+# Unofficial Luxer One Python Client
 
-A Python API client to the [Luxer One Residential](https://www.luxerone.com/market/residential/) API.
+An unofficial Python client for the [Luxer One Residential](https://www.luxerone.com/market/residential/) API. 
 
 ## Example
 
 ```python
-
-import luxerone
+from luxerone.client import LuxerOneClient
 
 # credentials
-username = "YOUR_EMAIL@example.com"
-password = "**********"
+username = "youremail@example.com"
+password = "your_password"
 
 # authenticate
-token = luxerone.login(username, password)
-
+luxer_one_client = LuxerOneClient(username, password)
 # print all pending packages
-pending = luxerone.pending(token)
-print("pending (%d):" % len(pending))
-luxerone.print_packages(pending)
+pending = luxer_one_client.get_pending_packages()
+print(f'Number of pending packages:{len(pending)}')
+print("=======================================")
+for package in pending:
+    print(f'Package id: {package.id}, Locker: {package.locker}, Access Code: {package.accessCode}')
+
+# logout
+luxer_one_client.logout()
+
 ```
 
-See [example_client.py](luxerone/example_client.py) for a more comprehensive example API client.
+For more details, please see the docs.

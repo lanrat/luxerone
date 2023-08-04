@@ -1,15 +1,21 @@
+"""
+Client for interacting with the LuxerOne Residential API
+"""
 import datetime
 from typing import Union
 
 from luxerone._api_utils import API, gen_uuid, api_request
 from luxerone.package import Package, HistoricalPackage
 from luxerone.user import UserInfo
+from luxerone.exceptions import RequestNotAuthenticatedException, TokenExpiredException
 
 
 class AuthTokenDetails:
+    """
+    Contains token details and utilities to check if the token has expired.
+    """
     def __init__(self, token: str, ttl: int):
         """
-        Contains token details and utilities to check if the token has expired.
         :param token: auth token.
         :param ttl: time to live in seconds.
         """
@@ -19,15 +25,18 @@ class AuthTokenDetails:
     def is_expired(self) -> bool:
         """
         Whether the token has expired.
+
         :return: true if expired, else false.
         """
         return datetime.datetime.now() > self.expires_at
 
 
 class LuxerOneClient:
+    """
+    Unofficial LuxerOne Python client.
+    """
     def __init__(self, username: str = None, password: str = None):
         """
-        Unofficial LuxerOne Python client.
         :param username: optional username. If one is not provided, :meth:`login<client.LuxerOneClient.login>` must be
                          called manually.
         :param password: optional password. If one is not provided, login must be called manually.
@@ -39,6 +48,7 @@ class LuxerOneClient:
     def login(self, username: str, password: str, ttl: int = 1800) -> None:
         """
         Gets an API auth token to submit requests.
+
         :param username: username
         :param password: password
         :param ttl: time to live for the token in seconds. Defaults to the max of 1800 (thirty minutes).
@@ -58,7 +68,8 @@ class LuxerOneClient:
     def get_long_lived_token(self, ttl: int = 18000000) -> None:
         """
         Gets a long-lived API auth token. Must have already :meth:`logged in<client.LuxerOneClient.login>` to request
-        the token
+        the token.
+
         :param ttl: time to live in seconds for the long-lived token. Max value is 18000000 (208.3 days)
         """
         self._validate_token()
@@ -72,6 +83,7 @@ class LuxerOneClient:
     def get_pending_packages(self) -> list:
         """
         Gets the list of current packages that have been delivered but not picked up.
+
         :returns: a list of packages that are pending pickup
         """
         self._validate_token()
@@ -81,19 +93,21 @@ class LuxerOneClient:
             packages.append(Package(package_data=pacakge_data))
         return packages
 
-    def get_user_info(self):
+    def get_user_info(self) -> UserInfo:
         """
-        returns a dictionary of user info
-        keys from user info can be used in set_setting() to toggle settings
+        Returns a UserInfo object containing the information for the authenticated user.
+
+        :returns: User Information.
         """
         self._validate_token()
         response = api_request(API.user_info, token=self.auth_token_details.token)
         return UserInfo(response)
 
-    def get_package_history(self) -> list:
-        """ returns a history of all packages received
-        includes pending packages
-        seems to be limited to last 50
+    def get_package_history(self) -> list[HistoricalPackage]:
+        """
+        Gets a history of all packages received includes pending packages. Seems to be limited to last 50.
+
+        :returns: list last 50 packages
         """
         self._validate_token()
         response = api_request(API.package_history, token=self.auth_token_details.token)
@@ -104,8 +118,8 @@ class LuxerOneClient:
 
     def logout(self) -> Union[dict, None]:
         """
-        logout from the LuxerOne API
-        this function call appears to have no affect, likely broken server side
+        Logout from the LuxerOne API.
+
         :return: logout response or None if the token is already expired.
         """
         if not self.auth_token_details.is_expired():
@@ -124,7 +138,7 @@ class LuxerOneClient:
         :return:
         """
         self._validate_token()
-        # TODO figure out which settings can be set and create an object for it
+        # TODO figure out which settings can be set and create a class for it
         # true/false are represented as 1/0
         if value:
             value = 1
@@ -140,5 +154,7 @@ class LuxerOneClient:
         """
         Validates the auth token, ensuring it is not expired.
         """
-        if self.auth_token_details is None or self.auth_token_details.is_expired():
-            raise Exception("Token expired, please login again.")
+        if self.auth_token_details is None:
+            raise RequestNotAuthenticatedException("You have not received an API Auth token yet, login to get one.")
+        if self.auth_token_details.is_expired():
+            raise TokenExpiredException("Your API Auth token expired, please login again. to receive a new one.")

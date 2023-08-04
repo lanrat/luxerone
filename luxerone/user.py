@@ -1,8 +1,20 @@
+"""
+Wrapper classes for all information relating to the user.
+"""
+
+
 class UserInfoLocation:
+    """
+    Delivery location information associated with a user.
+    """
+
     class Location:
+        """
+        Location information.
+        """
+
         def __init__(self, location_info: dict):
             """
-
             :param location_info:
             """
             self.id = None
@@ -20,6 +32,7 @@ class UserInfoLocation:
         def __str__(self):
             """
             Creates a string representation of the object.
+
             :return: object string representation.
             """
             object_string = "["
@@ -34,9 +47,12 @@ class UserInfoLocation:
             return object_string
 
     class LocationUser:
+        """
+        Class representing the Location of a user for the UserInfo object.
+        """
+
         def __init__(self, location_user_info: dict):
             """
-            Class representing the Location of a user for the UserInfo object.
             :param location_user_info:
             """
             self.id = None
@@ -66,6 +82,7 @@ class UserInfoLocation:
         def __str__(self):
             """
             Creates a string representation of the object.
+
             :return: object string representation.
             """
             object_string = "["
@@ -81,7 +98,6 @@ class UserInfoLocation:
 
     def __init__(self, all_locations_data: dict):
         """
-        Class representing a delivery location associated with a user.
         :param all_locations_data:
         """
         self.location = UserInfoLocation.Location(all_locations_data["Location"])
@@ -90,6 +106,7 @@ class UserInfoLocation:
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
@@ -105,9 +122,12 @@ class UserInfoLocation:
 
 
 class UserInfo:
+    """
+    Class representing the user information.
+    """
+
     def __init__(self, user_info: dict):
         """
-        Class representing the user information.
         :param user_info:
         """
         self.id = None
@@ -152,6 +172,7 @@ class UserInfo:
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["

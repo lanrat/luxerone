@@ -4,6 +4,8 @@ import urllib.parse
 import urllib.request
 import uuid
 
+from luxerone.exceptions import LuxerOneAPIException
+
 _API_BASE = "https://resident-api.luxerone.com/resident_api/v1"
 _DEFAULT_HEADERS = {
     "content-type": "application/x-www-form-urlencoded",
@@ -110,5 +112,5 @@ def api_request(api: API, token=None, data=None) -> dict:
     response = LuxerOneApiResponse(raw_response.read())
     raw_response.close()
     if response.has_error():
-        raise Exception("pending error: %s" % response.error)
+        raise LuxerOneAPIException(f'Received an error response from the API: {response.error}')
     return response.data

@@ -1,7 +1,15 @@
+"""
+Wrapper classes for all information relating to package deliveries.
+"""
+
+
 class Locker:
+    """
+    Locker information.
+    """
+
     def __init__(self, package_data: dict):
         """
-        Locker information class.
         :param package_data: package data in json format from the API.
         """
         self.lockerId = None
@@ -17,6 +25,7 @@ class Locker:
     def __str__(self) -> str:
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
@@ -32,9 +41,12 @@ class Locker:
 
 
 class Carrier:
+    """
+    Carrier information.
+    """
+
     def __init__(self, package_data: dict):
         """
-        Carrier information class.
         :param package_data: package data in json format from the API.
         """
         self.carrier = None
@@ -49,6 +61,7 @@ class Carrier:
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
@@ -64,9 +77,12 @@ class Carrier:
 
 
 class Location:
+    """
+    Location information regarding the package delivery location.
+    """
+
     def __init__(self, package_data: dict):
         """
-        Locker information class.
         :param package_data: package data in json format from the API.
         """
         self.location = None
@@ -83,6 +99,7 @@ class Location:
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
@@ -98,9 +115,12 @@ class Location:
 
 
 class Package:
+    """
+    Package information.
+    """
+
     def __init__(self, package_data: dict):
         """
-        Package information class.
         :param package_data: package data in json format from the API.
         """
         self.id = None
@@ -126,6 +146,7 @@ class Package:
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
@@ -141,9 +162,12 @@ class Package:
 
 
 class HistoricalPackage(Package):
+    """
+    Historical Package information.
+    """
+
     def __init__(self, package_data: dict):
         """
-        Historical Package info class.
         :param package_data: package data in json format from the API.
         """
         super().__init__(package_data)
@@ -159,6 +183,7 @@ class HistoricalPackage(Package):
     def __str__(self):
         """
         Creates a string representation of the object.
+
         :return: object string representation.
         """
         object_string = "["
