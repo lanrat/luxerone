@@ -5,6 +5,7 @@ A Python API client to the [Luxer One Residential](https://www.luxerone.com/mark
 ## Example
 
 ```python
+
 import luxerone
 
 # credentials
@@ -20,4 +21,4 @@ print("pending (%d):" % len(pending))
 luxerone.print_packages(pending)
 ```
 
-See [example_client.py](example_client.py) for a more comprehensive example API client.
+See [example_client.py](luxerone/example_client.py) for a more comprehensive example API client.
