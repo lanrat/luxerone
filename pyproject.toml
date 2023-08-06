@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "luxerone"
-version = "1.0"
+version = "0.1"
 authors = [
-  { name="Patrick Shinn", email="shinn5112@gmail.com" }, { name="Ian Foster", email="" }
+  { name="Patrick Shinn", email="shinn5112@gmail.com" }
 ]
 description = "Unofficial LuxerOne residential API client for Python."
 readme = "README.md"
@@ -20,3 +20,4 @@ classifiers = [
 [project.urls]
 "Homepage" = "TODO"
 "Bug Tracker" = "TODO"
+"Documentation" = ""

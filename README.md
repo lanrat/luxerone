@@ -5,7 +5,7 @@ An unofficial Python client for the [Luxer One Residential](https://www.luxerone
 ## Example
 
 ```python
-from luxerone.client import LuxerOneClient
+from luxerone import LuxerOneClient
 
 # credentials
 username = "youremail@example.com"
