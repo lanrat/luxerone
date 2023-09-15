@@ -4,7 +4,9 @@ Client for interacting with the LuxerOne Residential API
 import datetime
 from typing import Union
 
-from luxerone._api_utils import API, gen_uuid, api_request
+from luxerone.api import API, api_request
+from luxerone.forms import (_LoginRequestForm, _LongLivedTokenForm,
+                            _LogoutForm, _ResetPasswordForm, UpdateUserSettingsForm)
 from luxerone.package import Package, HistoricalPackage
 from luxerone.user import UserInfo
 from luxerone.exceptions import RequestNotAuthenticatedException, TokenExpiredException
@@ -12,8 +14,12 @@ from luxerone.exceptions import RequestNotAuthenticatedException, TokenExpiredEx
 
 class AuthTokenDetails:
     """
-    Contains token details and utilities to check if the token has expired.
+    Abstraction layer for working with token details.
+
+    :param token: auth token.
+    :param ttl: time to live in seconds.
     """
+
     def __init__(self, token: str, ttl: int):
         """
         :param token: auth token.
@@ -55,9 +61,10 @@ class LuxerOneClient:
     :param username: Optional username. If one is not provided, :meth:`LuxerOneClient.login` must be called
                          manually or a token must be provided.
     :param password: The password associated with the provided username.
-    :param auth_token_details: Optional parameter. If no username or password is provided, an existing token can
-                               be provided.
+    :param auth_token_details: Optional parameter. If no username or password is provided, an existing
+                               :class:`AuthTokenDetails` can be used.
     """
+
     def __init__(self, username: str = None, password: str = None,
                  auth_token_details: AuthTokenDetails = None):
         """
@@ -85,16 +92,8 @@ class LuxerOneClient:
                     (thirty minutes).
         :raise LuxerOneAPIException: when failure to login occurs.
         """
-        generated_id = gen_uuid()
-        data = {
-            "as": "token",
-            "expires": ttl,
-            "remember": True,
-            "uuid": generated_id,
-            "username": username,
-            "password": password,
-        }
-        login_resp = api_request(api=API.auth, data=data)
+        form = _LoginRequestForm(username, password, ttl)
+        login_resp = api_request(api=API.auth, form=form)
         self._auth_token_details = AuthTokenDetails(login_resp["token"], ttl)
 
     def get_long_lived_token(self, ttl: int = 18000000) -> AuthTokenDetails:
@@ -117,15 +116,44 @@ class LuxerOneClient:
         :returns: the auth token details for the long-lived-token.
         """
         self._validate_token()
-        data = {
-            "as": "token",
-            "expire": ttl,
-        }
-        login_resp = api_request(API.auth_long_term, token=self._auth_token_details.token, data=data)
+        form = _LongLivedTokenForm(ttl)
+        login_resp = api_request(API.auth_long_term, token=self._auth_token_details.token, form=form)
         # invalidate the prior token
         self.logout()
         self._auth_token_details = AuthTokenDetails(login_resp["token"], ttl)
         return self._auth_token_details
+
+    def logout(self) -> Union[dict, None]:
+        """
+        Logout from the LuxerOne API. This will invalidate (in theory) the auth token that is being used by the client,
+        so be careful when calling this method if you are using a long-lived token. Testing has shown that calling
+        logout does not appear to invalidate the token.
+
+        :raise RequestNotAuthenticatedException: when called without having an auth token set.
+        :raise LuxerOneAPIException: when the API call fails unexpectedly.
+        :return: logout response or None if the token is already expired.
+        """
+        if self._auth_token_details is None:
+            raise RequestNotAuthenticatedException("You have not received an API Auth token yet, login to get one.")
+        if not self._auth_token_details.is_expired():
+            form = _LogoutForm(self._auth_token_details.token)
+            response = api_request(API.logout, token=self._auth_token_details.token, form=form)
+            # clear the token details from the client
+            self._auth_token_details = None
+            return response
+        # clear the token details from the client
+        self._auth_token_details = None
+        return None
+
+    @staticmethod
+    def reset_password(email: str) -> None:
+        """
+        Requests a reset password email.
+
+        :param email: email of the account to reset the password for.
+        """
+        form = _ResetPasswordForm(email)
+        api_request(API.reset_password, form=form)
 
     def get_pending_packages(self) -> list[Package]:
         """
@@ -172,27 +200,7 @@ class LuxerOneClient:
             packages.append(HistoricalPackage(package_data=pacakge_data))
         return packages
 
-    def logout(self) -> Union[dict, None]:
-        """
-        Logout from the LuxerOne API. This will invalidate (in theory) the auth token that is being used by the client,
-        so be careful when calling this method if you are using a long-lived token. Testing has shown that calling
-        logout does not appear to invalidate the token.
-
-        :raise RequestNotAuthenticatedException: when called without having an auth token set.
-        :raise LuxerOneAPIException: when the API call fails unexpectedly.
-        :return: logout response or None if the token is already expired.
-        """
-        if self._auth_token_details is None:
-            raise RequestNotAuthenticatedException("You have not received an API Auth token yet, login to get one.")
-        if not self._auth_token_details.is_expired():
-            data = {
-                "revoke": self._auth_token_details,
-            }
-            response = api_request(API.logout, token=self._auth_token_details.token, data=data)
-            return response
-        return None
-
-    def set_setting(self, key, value) -> dict:
+    def update_user_settings(self, form: UpdateUserSettingsForm) -> dict:
         """
         Changes user settings. Keys are values from :meth:`LuxerOneClient.get_user_info`
         Not all options are changeable.
@@ -200,22 +208,14 @@ class LuxerOneClient:
         This is still a work in progress and will eventually provide wrapper classes
         for manipulating user information.
 
+        :param form: UpdateUserSettingsForm, any field left blank will not be modified.
         :raise RequestNotAuthenticatedException: when called without having an auth token set.
         :raise TokenExpiredException: when an expired auth token is used.
         :raise LuxerOneAPIException: when the API call fails unexpectedly.
         :return: the api response.
         """
         self._validate_token()
-        # TODO figure out which settings can be set and create a class for it
-        # true/false are represented as 1/0
-        if value:
-            value = 1
-        else:
-            value = 0
-        data = {
-            key: value,
-        }
-        response = api_request(API.update_user_setting, token=self._auth_token_details.token, data=data)
+        response = api_request(API.update_user_setting, token=self._auth_token_details.token, form=form)
         return response
 
     def _set_auth_token_details(self, auth_token_details: AuthTokenDetails) -> None:

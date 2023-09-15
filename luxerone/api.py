@@ -1,11 +1,13 @@
+"""
+Utilities for interacting with the Luxer One REST API.
+"""
 import enum
 import json
 import urllib.parse
 import urllib.request
-import uuid
 
 from luxerone.exceptions import LuxerOneAPIException
-
+from luxerone.forms import _RequestForm
 _API_BASE = "https://resident-api.luxerone.com/resident_api/v1"
 _DEFAULT_HEADERS = {
     "content-type": "application/x-www-form-urlencoded",
@@ -21,22 +23,26 @@ class _APIDefinition:
 
 
 class API(enum.Enum):
+    # auth
     auth = _APIDefinition("/auth/login", "POST")
+    reset_password = _APIDefinition("/auth/resetpassword", "POST")
     auth_long_term = _APIDefinition("/auth/longterm", "POST")
     logout = _APIDefinition("/auth/logout", "POST")
+    # packages
     pending_packages = _APIDefinition("/deliveries/pendings", "GET")
     package_history = _APIDefinition("/deliveries/history", "GET")
+    # user info/settings
     user_info = _APIDefinition("/user/info", "GET")
     update_user_setting = _APIDefinition("/user/settings", "POST")
 
-    def get_endpoint(self):
+    def get_endpoint(self) -> str:
         """
         Gets the endpoint associated with the API call
         :return: the endpoint.
         """
         return self.value.endpoint
 
-    def get_method(self):
+    def get_method(self) -> str:
         """
         Gets the HTTP method used for the API call.
         :return: the HTTP method
@@ -83,26 +89,18 @@ class LuxerOneApiResponse:
         return object_string
 
 
-def gen_uuid() -> str:
-    """
-    Generates a UUID.
-    :return: a 64 bit uuid as a hex string for new clients
-    """
-    generated_id = uuid.uuid4().int & (1 << 64) - 1
-    return hex(generated_id)[2:]
-
-
-def api_request(api: API, token=None, data=None) -> dict:
+def api_request(api: API, token: str = None, form: _RequestForm = None) -> dict[any, any]:
     """
     Helper function for calling api endpoints
     :param api:
     :param token:  the API token to add to the authorization header
-    :param data:   the message body for POST request that will be URL encoded
+    :param form:   the message body for POST request that will be URL encoded
     :return: the returned json parsed as a dict
     """
     url = _API_BASE + api.get_endpoint()
-    if data:
-        data = urllib.parse.urlencode(data).encode()
+    data = None
+    if form:
+        data = urllib.parse.urlencode(form.get_data()).encode()
     req = urllib.request.Request(url, method=api.get_method(), data=data, headers=_DEFAULT_HEADERS)
     if token:
         req.add_header("authorization", "LuxerOneApi " + token)
