@@ -1,5 +1,7 @@
 # Unofficial Luxer One Python Client
 
+![https://readthedocs.org/projects/luxerone/badge/?version=latest](https://readthedocs.org/projects/luxerone/badge/?version=latest)
+
 An unofficial Python client for the [Luxer One Residential](https://www.luxerone.com/market/residential/) API. 
 
 ## Example

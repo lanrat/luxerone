@@ -18,6 +18,6 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "TODO"
-"Bug Tracker" = "TODO"
-"Documentation" = ""
+"Homepage" = "https://github.com/shinn5112/luxerone"
+"Bug Tracker" = "https://github.com/shinn5112/luxerone/issues"
+"Documentation" = "TODO"
